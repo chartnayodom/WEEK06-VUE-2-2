@@ -79,7 +79,7 @@
         <div class="container is-max-desktop p-5">
             <div class="column pt-6 pl-0 pr-0">
                 <!-- card cart component แสดงข้อมูลที่อยู่ใน Localstorage ---------------------------------------------->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     <div class="card-content p-0">
                         <div class="media">
                             <div class="media-left">
@@ -100,6 +100,30 @@
                             </div>
                         </div>
                     </div>
+                </div> -->
+                
+                <!-- actual data -->
+                <div class="card mb-4" v-for="product in cart">
+                    <div class="card-content p-0">
+                        <div class="media">
+                            <div class="media-left">
+                                <figure class="image is-96x96">
+                                    <img :src="product.image"
+                                        alt="Placeholder image">
+                                </figure>
+                            </div>
+                            <div class="media-content pt-2">
+                                <p class="is-5">{{product.title}}</p>
+                                <p class="has-text-grey-light is-6">{{product.brand}}</p>
+                                <div style="display: flex;justify-content: space-between;">
+                                    <div>
+                                        <span class="is-6 has-text-danger">{{product.price}}</span>
+                                        <span>x{{product.quantity}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -110,7 +134,7 @@
                 </div>
                 <div class="column is-3 has-text-right">
                     <!-- Total here ---------------------------------------- -->
-                    123 ฿
+                    {{total}} ฿
                 </div>
             </div>
 
@@ -127,19 +151,19 @@
                 <div class="column">
                     <label class="label">Firstname</label>
                     <div class="control">
-                        <input class="input" type="text">
+                        <input class="input" type="text" v-model="fname">
                     </div>
                 </div>
                 <div class="column">
                     <label class="label">Lastname</label>
                     <div class="control">
-                        <input class="input" type="text">
+                        <input class="input" type="text" v-model="lname">
                     </div>
                 </div>
                 <div class="column">
                     <label class="label">Tel</label>
                     <div class="control">
-                        <input class="input" type="text">
+                        <input class="input" type="text" v-model="tel">
                     </div>
                 </div>
             </div>
@@ -152,7 +176,7 @@
                 <div class="column">
                     <label class="label">จังหวัด</label>
                     <div class="select">
-                        <select >
+                        <select id="province" v-model="prov">
                             <option v-for="item in province" :key="item.id" :value="item.id">
                                 {{ item.name_th }}
                             </option>
@@ -162,8 +186,8 @@
                 <div class="column">
                     <label class="label">อำเภอ</label>
                     <div class="select">
-                        <select >
-                            <option v-for="item in amphures" :key="item.id" :value="item.id">
+                        <select id="amphures" v-model="dist">
+                            <option v-for="item in filterAmp" :key="item.id" :value="item.id">
                                 {{ item.name_th }}
                             </option>
                         </select>
@@ -172,8 +196,8 @@
                 <div class="column">
                     <label class="label">ตำบล</label>
                     <div class="select">
-                        <select >
-                            <option v-for="item in tambons" :key="item.id" :value="item.id">
+                        <select id="tambons" v-model="zone">
+                            <option v-for="item in filterTam" :key="item.id" :value="item.id">
                                 {{ item.name_th }}
                             </option>
                         </select>
@@ -199,7 +223,33 @@
                         Order Table ของนักศึกษา
                         <table id='order-table' style="width: 100%;" class="table is-bordered">
                             <!-- ใส่ข้อมูลของ table ไว้ในนี้ -------------------------------------------->
-
+                            <tr>
+                                <th colspan="4" style="text-align: center;">Order Detail</th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">ชื่อ : {{fname+ " " +lname}}</th>
+                                <th colspan="2">ที่อยู่ : {{address}}</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" style="text-align: center;">รายการสินค้า</th>
+                            </tr>
+                            <tr>
+                                <th>ชื่อสินค้า</th>
+                                <th>ราคาต่อหน่วย</th>
+                                <th>จำนวน</th>
+                                <th>ราคารวม</th>
+                            </tr>
+                            <tr v-for="item in cart">
+                                <td>{{item.title}}</td>
+                                <td>{{item.price}}</td>
+                                <td>{{item.quantity}}</td>
+                                <td>{{item.price * item.quantity}}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"></td>
+                                <th colspan="1">ราคารวมทั้งหมด</th>
+                                <th>{{total}}</th>
+                            </tr>
                         </table>
                     </section>
                 </div>
@@ -224,9 +274,72 @@
                     province: province, // ข้อมูลจังหวัด
                     amphures: amphures, // ข้อมูลอำเภอ
                     tambons: tambons, // ข้อมูลตำบล
+                    fname:"",
+                    lname:"",
+                    tel:"",
+                    total:0,
+                    prov:"",
+                    dist:"",
+                    zone:""
                 },
+                created(){
+                  let text = localStorage.getItem("cart_out")
+                  this.cart = JSON.parse(text)
+                  this.cart.forEach(element => {
+                    this.total += element.price * element.quantity  
+                  });
+                },
+                // computed:{
+                //     change_address(){
+                //         console.log(document.getElementById("province").value)
+                //         console.log(document.getElementById("amphures").value)
+                //         console.log(document.getElementById("tambons").value)
+
+                //     }
+                // },
+                watch: {
+                    prov: function(){
+                        console.log(this.prov)
+                        
+                        let res1 = this.province.filter((item)=>{
+                            return item.id === this.prov
+                        })
+                        console.log(res1.name_th)
+                        this.address = this.zone + " " + this.dist + " " + this.prov
+
+                    },
+                    dist: function(){
+                        console.log(this.dist)
+                        
+                        
+                        this.address = this.zone + " " +  + " " + this.prov
+                    },
+                    zone: function(){
+                        // console.log(this.zone)
+                        let zone = this.tambons.filter((data) =>{
+                            return data.id == this.zone
+                        })
+                        res = zone.find(elm => {
+                            
+                        })
+                        this.address = this.zone + " " + this.dist + " " + this.prov
+                    }
+                },
+                computed:{
+                    filterAmp(){
+                        return this.amphures.filter((data)=>{
+                            return data.province_id == this.prov
+                        })
+                    },
+                    filterTam(){
+                        return this.tambons.filter((data) =>{
+                            return data.amphure_id == this.dist
+                        })
+                    }
+                }
                 
             })
+
 
         </script>
 
